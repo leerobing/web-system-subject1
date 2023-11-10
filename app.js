@@ -65,8 +65,28 @@ app.post("/cid", upload.single("image"), (req, res) => {
 });
 
 // 사용자 정보 조회
+app.get("/rid", (req, res) => {
+  const id = req.query.id; //쿼리스트링에 아이디를 받아온다.
+  const userInfo = users[id];
 
-// 사용자 정보 수정
+  if (userInfo) {
+    res.send(JSON.stringify(userInfo)); //JSON.stringify( )는 자바스크립트의 값을 JSON 문자열로 변환한다.
+  } else {
+    res.status(404).send("존재하지 않은 회원입니다.");
+  }
+});
+
+// // 사용자 정보 수정
+app.post("/uid", upload.single("image"), (req, res) => {
+  const { id, name, birth, gender } = req.body;
+
+  if (!users[id]) {
+    return res.status(404).send(`존재하지 않은 회원입니다 : ${id}`);
+  }
+
+  users[id] = { name, birth, gender, img: req.file?.path ?? " " };
+  res.sendFile(path.join(PUBLIC, "index.html"));
+});
 
 // 사용자 정보 삭제
 // fs.unlink(users[id].img);
