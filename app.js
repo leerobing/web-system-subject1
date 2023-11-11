@@ -43,7 +43,7 @@ app.get("/read", (_, res) => res.sendFile(path.join(PUBLIC, "read.html")));
 app.get("/update", (_, res) => res.sendFile(path.join(PUBLIC, "update.html")));
 app.get("/delete", (_, res) => res.sendFile(path.join(PUBLIC, "delete.html")));
 
-const DIR = "/data";
+const DIR = "data/";
 
 const upload = multer({
   storage: multer.diskStorage({
@@ -52,11 +52,15 @@ const upload = multer({
     },
     filename(req, file, done) {
       const ext = path.extname(file.originalname);
-      done(null, `${req.body.id}${ext}}`);
+      done(null, `${req.body.id}${ext}`);
     },
   }),
 });
-
+try {
+  fs.readdirSync(DIR);
+} catch (error) {
+  fs.mkdirSync(DIR);
+}
 // 사용자 정보 추가
 app.post("/cid", upload.single("image"), (req, res) => {
   const { id, name, birth, gender } = req.body;
@@ -89,8 +93,24 @@ app.post("/uid", upload.single("image"), (req, res) => {
 });
 
 // 사용자 정보 삭제
-// fs.unlink(users[id].img);
-// delete users[id];
+app.get("/did", (req, res) => {
+  const id = req.query.id;
+  const userData = users[id];
+
+  if (!userData) {
+    return res.status(404).send(`존재하지 않은 ID: ${id}`);
+  }
+
+  // 파일이 비어있어도 삭제
+  if (userData.img) {
+    const filePath = path.join(DIR, path.basename(userData.img)); // 파일 경로 생성
+    fs.unlink(filePath);
+  }
+
+  // 유저 데이터 삭제
+  delete users[id];
+  res.redirect(301, "/index.html");
+});
 
 app.listen(app.get("port"), () =>
   console.log(`${app.get("port")} 번 포트에서 대기 중`)
