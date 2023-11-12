@@ -95,16 +95,20 @@ app.post("/uid", upload.single("image"), (req, res) => {
 // 사용자 정보 삭제
 app.get("/did", (req, res) => {
   const id = req.query.id;
-  const userData = users[id];
+  const user = users[id];
 
-  if (!userData) {
+  if (!user) {
     return res.status(404).send(`존재하지 않은 ID: ${id}`);
   }
 
   // 파일이 비어있어도 삭제
-  if (userData.img) {
-    const filePath = path.join(DIR, path.basename(userData.img)); // 파일 경로 생성
-    fs.unlink(filePath);
+  if (user.img) {
+    const filePath = path.join(DIR, path.basename(user.img));
+    fs.unlink(filePath, (err) => {
+      if (err) {
+        throw err;
+      }
+    });
   }
 
   // 유저 데이터 삭제
